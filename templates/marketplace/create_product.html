@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add Product - Handmade Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Add Your Product</h2>
+                    
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Product Name -->
+                        <div class="mb-4">
+                            <label for="id_name" class="form-label">Product Name</label>
+                            <input type="text" name="name" id="id_name" class="form-control" required>
+                            <div class="invalid-feedback">Please enter a product name.</div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="id_category" class="form-label">Category</label>
+                            <select name="category" id="id_category" class="form-select" required>
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a category.</div>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="mb-4">
+                            <label for="id_price" class="form-label">Price ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="price" id="id_price" class="form-control" step="0.01" min="0" required>
+                            </div>
+                            <div class="invalid-feedback">Please enter a valid price.</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label">Description</label>
+                            <textarea name="description" id="id_description" class="form-control" rows="4" required></textarea>
+                            <div class="invalid-feedback">Please provide a product description.</div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-4">
+                            <label for="id_image" class="form-label">Product Image</label>
+                            <div class="image-upload-container">
+                                <div class="image-preview mb-3 text-center">
+                                    <img id="imagePreview" src="#" alt="Preview" style="display: none; max-width: 100%; max-height: 300px; border-radius: 8px;">
+                                    <div id="uploadPlaceholder" class="upload-placeholder p-5 border rounded text-center">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <p class="mb-0">Drag and drop your image here or click to browse</p>
+                                    </div>
+                                </div>
+                                <input type="file" name="image" id="id_image" class="form-control" accept="image/*" required>
+                                <div class="invalid-feedback">Please upload a product image.</div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Details -->
+                        <div class="mb-4">
+                            <label for="id_additional_details" class="form-label">Additional Details (Optional)</label>
+                            <textarea name="additional_details" id="id_additional_details" class="form-control" rows="3" placeholder="Enter any additional information about your product..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i> Add Product
+                            </button>
+                            <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+    // Image preview
+    document.getElementById('id_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('uploadPlaceholder');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.image-upload-container');
+    const fileInput = document.getElementById('id_image');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-primary');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-primary');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        
+        // Trigger the change event to show preview
+        const event = new Event('change');
+        fileInput.dispatchEvent(event);
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-upload-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .image-upload-container:hover {
+        border-color: var(--primary-color);
+    }
+
+    .upload-placeholder {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .upload-placeholder:hover {
+        background-color: #f8f9fa;
+    }
+
+    #imagePreview {
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: #357abd;
+        border-color: #357abd;
+    }
+</style>
+{% endblock %}
+{% endblock %} 

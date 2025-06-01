@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Order Details</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order #{{ order.id }}</h5>
+                    <p class="card-text">
+                        <strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}<br>
+                        <strong>Status:</strong> 
+                        <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ order.status|title }}
+                        </span><br>
+                        <strong>Total Amount:</strong> ${{ order.total_amount }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Items</h5>
+                    {% for item in order.items.all %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                            <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0">${{ item.price }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <h5>Total</h5>
+                        <h5>${{ order.total_amount }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Actions</h5>
+                    {% if order.status == 'pending' %}
+                    <form method="post" action="{% url 'marketplace:cancel_order' order.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger w-100 mb-2">Cancel Order</button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'marketplace:order_list' %}" class="btn btn-outline-primary w-100">Back to Orders</a>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Need Help?</h5>
+                    <p class="card-text">
+                        If you have any questions about your order, please contact our support team.
+                    </p>
+                    <a href="{% url 'marketplace:contact' %}" class="btn btn-outline-secondary w-100">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ product.name }} - Handmade Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6 mb-4">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded shadow">
+            {% else %}
+            <div class="bg-light rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'marketplace:product_list' %}">Products</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mb-3">{{ product.name }}</h1>
+            
+            {% if product.category %}
+            <p class="text-muted mb-3">
+                <i class="fas fa-tag me-2"></i>
+                Category: {{ product.category.name }}
+            </p>
+            {% endif %}
+            
+            <div class="mb-4">
+                <h3 class="text-primary mb-2">${{ product.price }}</h3>
+                {% if product.stock > 0 %}
+                <span class="badge bg-success">In Stock</span>
+                {% else %}
+                <span class="badge bg-danger">Out of Stock</span>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <h5>Description</h5>
+                <p>{{ product.description }}</p>
+                {% if product.additional_details %}
+                <h5>Additional Details</h5>
+                <p>{{ product.additional_details }}</p>
+                {% endif %}
+            </div>
+            
+            {% if product.stock > 0 %}
+            <form method="post" action="{% url 'marketplace:create_order' product.id %}" class="mb-4">
+                {% csrf_token %}
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <label for="quantity" class="form-label">Quantity:</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}" style="width: 80px;">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Buy Now
+                        </button>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+            
+            <div class="mb-4">
+                <h5>Seller Information</h5>
+                <p>
+                    <i class="fas fa-user me-2"></i>
+                    {{ product.seller.username }}
+                </p>
+                <p>
+                    <i class="fas fa-clock me-2"></i>
+                    Listed on {{ product.created_at|date:"F j, Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reviews Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Reviews</h3>
+            
+            {% if user.is_authenticated %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Write a Review</h5>
+                    <form method="post" action="{% url 'marketplace:add_review' product.id %}">
+                        {% csrf_token %}
+                        {{ review_form|crispy }}
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if reviews %}
+            {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title mb-0">{{ review.user.username }}</h5>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                            <i class="fas fa-star"></i>
+                            {% else %}
+                            <i class="far fa-star"></i>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="card-text">{{ review.comment }}</p>
+                    <small class="text-muted">Posted on {{ review.created_at|date:"F j, Y" }}</small>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Related Products</h3>
+            <div class="row">
+                {% for related in related_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        {% if related.image %}
+                        <img src="{{ related.image.url }}" class="card-img-top" alt="{{ related.name }}">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ related.name }}</h5>
+                            <p class="card-text text-primary">${{ related.price }}</p>
+                            <a href="{% url 'marketplace:product_detail' related.id %}" class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

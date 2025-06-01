@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5">
+        <div class="col-md-6">
+            <h1 class="display-4 mb-4">Discover Unique Handmade Products</h1>
+            <p class="lead mb-4">Find one-of-a-kind items crafted with love by talented artisans from around the world.</p>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary btn-lg">Shop Now</a>
+        </div>
+        <div class="col-md-6">
+            <img src="{% static 'images/hero-image.jpg' %}" alt="Handmade Products" class="img-fluid rounded shadow">
+        </div>
+    </div>
+
+    <!-- Featured Categories -->
+    <section class="py-5">
+        <h2 class="text-center mb-4">Featured Categories</h2>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if category.image %}
+                    <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.name }}</h5>
+                        <p class="card-text">{{ category.description|truncatewords:20 }}</p>
+                        <a href="{% url 'marketplace:product_list' %}?category={{ category.id }}" class="btn btn-outline-primary">View Products</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Latest Products -->
+    <section class="py-5 bg-light">
+        <h2 class="text-center mb-4">Latest Products</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted">${{ product.price }}</p>
+                        <a href="{% url 'marketplace:product_detail' product.id %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline-primary">View All Products</a>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="py-5">
+        <h2 class="text-center mb-4">Why Choose Us</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-hand-holding-heart fa-3x mb-3 text-primary"></i>
+                    <h4>Handmade Quality</h4>
+                    <p>Each product is carefully crafted by skilled artisans.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-truck fa-3x mb-3 text-primary"></i>
+                    <h4>Fast Shipping</h4>
+                    <p>Quick and reliable delivery to your doorstep.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="text-center">
+                    <i class="fas fa-shield-alt fa-3x mb-3 text-primary"></i>
+                    <h4>Secure Shopping</h4>
+                    <p>Safe and secure payment processing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %} 

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Handmade Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Products</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_products %}
+                        <div class="list-group">
+                            {% for product in user_products %}
+                                <a href="{% url 'product_detail' product.id %}" class="list-group-item list-group-item-action">
+                                    {{ product.name }} - ${{ product.price }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't listed any products yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_orders %}
+                        <div class="list-group">
+                            {% for order in user_orders %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ order.product.name }}</h6>
+                                    <p class="mb-1">Quantity: {{ order.quantity }}</p>
+                                    <small class="text-muted">Total: ${{ order.total_price }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't placed any orders yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Checkout</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    {% for item in products %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                            <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0">${{ item.subtotal }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <h5>Total</h5>
+                        <h5>${{ total }}</h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payment Information</h5>
+                    <form method="post" id="payment-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="card-element" class="form-label">Credit or debit card</label>
+                            <div id="card-element" class="form-control">
+                                <!-- Stripe Card Element will be inserted here -->
+                            </div>
+                            <div id="card-errors" class="invalid-feedback" role="alert"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Pay ${{ total }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Information</h5>
+                    <p class="card-text">
+                        <strong>Items:</strong> {{ products|length }}<br>
+                        <strong>Total Amount:</strong> ${{ total }}
+                    </p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Your payment is secure and encrypted.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    var stripe = Stripe('{{ stripe_public_key }}');
+    var elements = stripe.elements();
+    
+    // Create card Element
+    var card = elements.create('card');
+    card.mount('#card-element');
+    
+    // Handle form submission
+    var form = document.getElementById('payment-form');
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        stripe.createPaymentMethod({
+            type: 'card',
+            card: card,
+        }).then(function(result) {
+            if (result.error) {
+                var errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+            } else {
+                // Send the payment method ID to your server
+                form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - Handmade Marketplace{% endblock %}
+
+{% block extra_css %}
+<style>
+    .StripeElement {
+        background-color: white;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .StripeElement--focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    .StripeElement--invalid {
+        border-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Complete Your Purchase</h2>
+                
+                <div class="order-summary mb-4">
+                    <h5>Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Product:</span>
+                        <span>{{ order.product.name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Quantity:</span>
+                        <span>{{ order.quantity }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total:</span>
+                        <span>${{ order.total_price }}</span>
+                    </div>
+                </div>
+
+                <form id="payment-form">
+                    <div class="mb-3">
+                        <label for="card-element" class="form-label">Credit or Debit Card</label>
+                        <div id="card-element" class="StripeElement"></div>
+                        <div id="card-errors" class="invalid-feedback" role="alert"></div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="submit-button">
+                            Pay ${{ order.total_price }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+    const card = elements.create('card');
+    card.mount('#card-element');
+
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+
+    card.addEventListener('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        submitButton.disabled = true;
+        submitButton.textContent = 'Processing...';
+
+        try {
+            const {paymentIntent, error} = await stripe.confirmCardPayment('{{ client_secret }}', {
+                payment_method: {
+                    card: card,
+                    billing_details: {
+                        name: '{{ user.get_full_name|default:user.username }}'
+                    }
+                }
+            });
+
+            if (error) {
+                const errorElement = document.getElementById('card-errors');
+                errorElement.textContent = error.message;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Pay ${{ order.total_price }}';
+            } else {
+                if (paymentIntent.status === 'succeeded') {
+                    window.location.href = "{% url 'order_success' order.id %}";
+                }
+            }
+        } catch (err) {
+            console.error('Error:', err);
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = 'An error occurred. Please try again.';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Pay ${{ order.total_price }}';
+        }
+    });
+</script>
+{% endblock %} 

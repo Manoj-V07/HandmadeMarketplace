@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart - Handmade Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Shopping Cart</h1>
+    <div class="card">
+        <div class="card-body">
+            <p class="text-muted">Your cart is empty.</p>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
